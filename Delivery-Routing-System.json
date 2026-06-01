@@ -1,0 +1,223 @@
+{
+  "name": "My workflow 4",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "shopping-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -112
+      ],
+      "id": "32f412f3-0d50-4794-b587-c95b3fb7df36",
+      "name": "Webhook",
+      "webhookId": "9bef5c28-68aa-49c2-88da-cae4f0849a35"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        432,
+        -112
+      ],
+      "id": "02861c1c-1a13-4477-bf8f-5650b3ab3e03",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"type\": \"question\",\n  \"message\": \"What is your budget?\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        -112
+      ],
+      "id": "b6f47523-fa81-40df-b76a-e8fcc779bced",
+      "name": "SET Node"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "purchase",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "9a3f47c5-5500-4bb6-bc0a-f33d9333c717"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        -112
+      ],
+      "id": "e8003d65-f6d8-48a1-bacd-c37a4364e630",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body['partner-email'] }}",
+        "subject": "New Order Pickup",
+        "message": "=Product: {{ $('Webhook').item.json.body.product }}\nCustomer: {{ $('Webhook').item.json.body.email }}\nAddress: {{ $('Switch').item.json.body.address }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        112
+      ],
+      "id": "806e17c7-4b5e-4cda-aed7-94f86df65ed9",
+      "name": "Delivery Partner Email",
+      "webhookId": "e930670d-e7ec-4b99-9e26-eab7b8abcbbc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GoGbmiZcGnjw9E5u",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.email }}",
+        "subject": "Order Confirmation",
+        "message": "=Your order for {{ $json.body.product }} is confirmed \u2705",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        112
+      ],
+      "id": "4ccd008f-e583-4c77-818a-ccb6ac1997a1",
+      "name": "User Email",
+      "webhookId": "51406534-5a8f-4c2f-a9ea-2253e30c3c64",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GoGbmiZcGnjw9E5u",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"order placed successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        112
+      ],
+      "id": "6498b7ce-8a66-4085-82e9-b569d70f86a5",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SET Node": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "User Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "SET Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "User Email": {
+      "main": [
+        [
+          {
+            "node": "Delivery Partner Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery Partner Email": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

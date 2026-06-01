@@ -1,0 +1,180 @@
+{
+  "name": "Email Classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "29c942c7-0095-4388-84b4-87468c7ee513",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GoGbmiZcGnjw9E5u",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Personal",
+              "description": "Emails are classified as Personal only if they are related to banking, financial transactions, investments, insurance, or other finance-related communications. This includes messages from banks, credit card providers, investment platforms, and financial institutions."
+            },
+            {
+              "category": "Work",
+              "description": "Emails are classified as Work if they are associated with professional, corporate, or technical contexts. This includes emails from companies, job platforms, LinkedIn notifications, IT services, project updates, or any business-related communication."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0afbb405-f6a2-47f1-a8a4-52fb5cee6d6e",
+      "name": "Text Classifier",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        144,
+        208
+      ],
+      "id": "29181811-06e8-4dde-931a-a1fc430d51d6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "SrSstVC6NcGNstEX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_735908347868046288"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -144
+      ],
+      "id": "d553ac83-6059-40a3-881e-bd2c3f795403",
+      "name": "Add label to message",
+      "webhookId": "f8c9c9f8-264b-4db6-a0cd-8c69fee1ec1f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GoGbmiZcGnjw9E5u",
+          "name": "Gmail account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "Label_8129439276483672827"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        80
+      ],
+      "id": "46f71726-16f0-4a58-9069-1f63f2bbeb31",
+      "name": "Add label to message1",
+      "webhookId": "f8c9c9f8-264b-4db6-a0cd-8c69fee1ec1f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GoGbmiZcGnjw9E5u",
+          "name": "Gmail account 4"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add label to message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 0,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
